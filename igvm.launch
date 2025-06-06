@@ -1,0 +1,26 @@
+<launch>
+    <!-- Set use_sim_time globally -->
+    <param name="use_sim_time" value="true" />
+
+    <!-- Static transform: base_link to lslidar (edit as needed) -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="static_lslidar_broadcaster"
+          args="2.8 0 0.2 0 0 0 base_link lslidar" />
+
+    <!-- Play rosbag file with simulated time -->
+    <node pkg="rosbag" type="play" name="rosbag_play" output="screen"
+          args="--clock /home/ros123/catkin_ws/src/robot_model_pkg/bagfile/2024-02-12-15-08-50.bag" />
+
+    <!-- OdomMonitor node (robust ICP + GPS/IMU fusion) -->
+    <node pkg="robot_model_pkg" type="finalodommonitor.py" name="finalodommonitor" output="screen" />
+
+    <!-- Visualization node -->
+    <node pkg="robot_model_pkg" type="vizodom.py" name="vizodom" output="screen" />
+
+    <!-- EKF Localization node for sensor fusion -->
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" output="screen">
+        <rosparam command="load" file="$(find robot_model_pkg)/config/ekf.yaml" />
+    </node>
+
+    <!-- Trajectory Metrics Node -->
+    <node pkg="robot_model_pkg" type="traj_metrics.py" name="trajectory_metrics_node" output="screen" />
+</launch>
